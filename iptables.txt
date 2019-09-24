@@ -1,0 +1,17 @@
+iptables -A proxytest -d 192.0.2.0/24 -p tcp --dport 80 -j REDIRECT --to-ports 9999
+iptables -A proxytest -d 192.0.2.0/24 -p tcp --dport 443 -j REDIRECT --to-ports 9998
+iptables -A proxytest -d 192.0.2.0/24 -p tcp --dport 25 -j REDIRECT --to-ports 9996
+iptables -A proxytest -d 192.0.2.0/24 -p tcp --dport 21 -j REDIRECT --to-ports 9995
+iptables -A proxytest -p tcp -j REDIRECT --to-ports 9997
+iptables -A proxytest -p udp -j REDIRECT --to-ports 9997 
+
+iptables -t nat -A OUTPUT -p tcp -m owner --uid-owner proxytest -j proxytest
+iptables -t nat -A OUTPUT -p udp -m owner --uid-owner proxytest -j proxytest
+
+ip6tables -A proxytest -d 2001:db8::/32 -p tcp --dport 80 -j REDIRECT --to-ports 9994
+ip6tables -A proxytest -d 2001:db8::/32 -p tcp --dport 443 -j REDIRECT --to-ports 9994
+ip6tables -A proxytest -p tcp -j REDIRECT --to-ports 9997
+ip6tables -A proxytest -p udp -j REDIRECT --to-ports 9997 
+
+ip6tables -t nat -A OUTPUT -p tcp -m owner --uid-owner proxytest -j proxytest
+ip6tables -t nat -A OUTPUT -p udp -m owner --uid-owner proxytest -j proxytest
