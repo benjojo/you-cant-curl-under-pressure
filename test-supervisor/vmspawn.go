@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"crypto/rand"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -28,8 +29,18 @@ type vm struct {
 	FailedAttempts       int // if it goes over 50 then kill the VM
 }
 
-func produceVM() *vm {
+var (
+	inShm = flag.Bool("useShm", false, "Store temp VM disks in /dev/shm")
+)
+
+func produceVM(fin chan *vm) {
+
 	fsName := fmt.Sprintf("./%s.ext2", randString(5))
+
+	if *inShm {
+		fsName = fmt.Sprintf("/dev/shm/%s.ext2", randString(5))
+	}
+
 	fs, err := os.Create(fsName)
 	if err != nil {
 		log.Fatalf("Unable to make VM Image %s", err.Error())
@@ -48,6 +59,7 @@ func produceVM() *vm {
 	// let's start the VM
 
 	qemu := exec.Command("/usr/bin/qemu-system-x86_64",
+		"-m", "64",
 		"-netdev", "user,id=n1", // Network Interface
 		"-device", "virtio-net-pci,netdev=n1", // Network Interface
 		"-device", "virtio-scsi-pci", // VirtIO disk
@@ -62,6 +74,7 @@ func produceVM() *vm {
 
 	if *runas != "" {
 		qemu = exec.Command("/usr/bin/qemu-system-x86_64",
+			"-m", "64",
 			"-netdev", "user,id=n1", // Network Interface
 			"-device", "virtio-net-pci,netdev=n1", // Network Interface
 			"-device", "virtio-scsi-pci", // VirtIO disk
@@ -96,14 +109,15 @@ func produceVM() *vm {
 	go Result.readVMintoStringArray(stdoutPipe, "O")
 	go Result.readVMintoStringArray(stderrPipe, "E")
 
+	Result.getFullyBooted()
+
 	// unlink them so they actually removed when qemu dies
 	os.Remove(fsName)
 
-	Result.getFullyBooted()
 	Result.PID = Result.QEMU.Process.Pid
 	Result.Started = time.Now()
 
-	return &Result
+	fin <- &Result
 }
 
 func (v *vm) getFullyBooted() {
@@ -114,6 +128,11 @@ func (v *vm) getFullyBooted() {
 			continue
 		}
 		if strings.Contains(v.StdoutOutput[len(v.StdoutOutput)-1], "bnblog login") {
+			v.Stdin.Write([]byte("\nroot\n\n\n"))
+			return
+		}
+
+		if strings.Contains(v.StdoutOutput[len(v.StdoutOutput)-1], "bnbloglogin") {
 			v.Stdin.Write([]byte("\nroot\n\n\n"))
 			return
 		}

@@ -14,7 +14,7 @@ import (
 )
 
 func rootTestHandler(w http.ResponseWriter, r *http.Request) {
-	vm := locateVM(r)
+	vm := locateVM(r.RemoteAddr)
 
 	if vm == nil {
 		http.Error(w, "Failed to locate the VM", 500)
@@ -54,6 +54,12 @@ func rootTestHandler(w http.ResponseWriter, r *http.Request) {
 		vm.QEMU.Process.Wait()
 	} else {
 		http.Error(w, "Incorrect", 400)
+		vm.FailedAttempts++
+		if vm.FailedAttempts > 50 {
+			// Likely a DoS, so fuck them
+			vm.QEMU.Process.Kill()
+			vm.QEMU.Process.Wait()
+		}
 	}
 
 }
