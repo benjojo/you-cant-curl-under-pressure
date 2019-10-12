@@ -51,6 +51,7 @@ func main() {
 		http.Handle("/metrics", promhttp.Handler())
 		http.Handle("/serve", websocket.Handler(startGame))
 		http.HandleFunc("/", handleAlive)
+		http.HandleFunc("/replay/", handleReplay)
 
 		http.ListenAndServe(":10001", nil)
 		return
@@ -113,6 +114,7 @@ func makeHTTPServer() *http.Server {
 	mux.HandleFunc("/check", handleAlive)
 	mux.HandleFunc("/reload", handleProbe)
 	mux.HandleFunc("/", handleRoot)
+	mux.HandleFunc("/replay/", handleReplay)
 	mux.Handle("/serve", websocket.Handler(startGame))
 
 	return &http.Server{
@@ -130,6 +132,7 @@ type publicLoadResponse struct {
 }
 
 func handleAlive(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "https://blog.benjojo.co.uk")
 	w.Header().Set("content-type", "application/json")
 	Avail, Running := 0, 0
 	MaxCapacity := 0
@@ -220,7 +223,8 @@ func startGame(ws *websocket.Conn) {
 
 	// dump link to recording
 	ws.Write([]byte(fmt.Sprintf("\r\n\r\nYou have finished! You took %1f seconds to compete the challenges!", time.Since(startTimer).Seconds())))
-	ws.Write([]byte(fmt.Sprintf("\r\n\r\nShould you want to show off to someone your session here is a link to the recording: %s", sessionHash)))
+	ws.Write([]byte(fmt.Sprintf("\r\n\r\nShould you want to show off to someone your session here is a link to the recording:")))
+	ws.Write([]byte(fmt.Sprintf("\r\nhttps://yccup.benjojo.co.uk/replay/?s=%s \r\n ", sessionHash)))
 
 	// dump high score board
 }
