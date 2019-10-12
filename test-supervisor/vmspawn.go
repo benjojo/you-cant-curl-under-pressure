@@ -66,7 +66,8 @@ func produceVM(fin chan *vm) {
 		"-drive", fmt.Sprintf("file=%s,if=virtio", fsName), // VirtIO disk
 		"-kernel", "bzImage",
 		"-append", "root=/dev/vda rw console=ttyS0",
-		"-serial", "mon:stdio",
+		"-serial", "stdio",
+		"-monitor", "none",
 		"-nographic",
 		"-object", "rng-random,filename=/dev/urandom,id=rng0", // TLS speedup
 		"-device", "virtio-rng-pci,rng=rng0", // TLS Speedup
@@ -81,7 +82,8 @@ func produceVM(fin chan *vm) {
 			"-drive", fmt.Sprintf("file=%s,if=virtio", fsName), // VirtIO disk
 			"-kernel", "bzImage",
 			"-append", "root=/dev/vda rw console=ttyS0",
-			"-serial", "mon:stdio",
+			"-serial", "stdio",
+			"-monitor", "none",
 			"-nographic",
 			"-runas", *runas,
 			"-object", "rng-random,filename=/dev/urandom,id=rng0", // TLS speedup
