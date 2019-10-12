@@ -216,6 +216,10 @@ func getControlValue(Available int) float64 {
 // 	return math.Log(x) / math.Log(math.E)
 // }
 
+var (
+	cpuSniperTime = flag.Int("cpu.sniper.seconds", 20, "How many seconds of CPU time a QEMU PID is allowed to use")
+)
+
 func (v *vmPool) startCPUsniper() {
 	for {
 		v.lock.Lock()
@@ -226,8 +230,11 @@ func (v *vmPool) startCPUsniper() {
 				continue
 			}
 
-			if s.utime > 15 {
+			if s.utime > float64(*cpuSniperTime) {
 				v.Running--
+				if !vv.InUse {
+					v.Available--
+				}
 				vv.QEMU.Process.Kill()
 				vv.QEMU.Process.Wait()
 				vv.TestComplete <- false

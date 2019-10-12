@@ -58,8 +58,8 @@ var challenges = map[string]challengeSpec{
 	},
 	"UPLOADMIMEFILE": challengeSpec{
 		ChallengeCode: "UPLOADMIMEFILE",
-		Description:   "Use curl send a mulipart upload containing both a=b and /usr/bin/curl to go.fast",
-		Title:         "Multipart File Upload",
+		Description:   "Use curl send a mulipart upload containing both a=b and curl = the contents of /usr/bin/curl to go.fast",
+		Title:         "Multipart Form File Upload",
 		Stage:         3,
 	},
 	"FTPGET": challengeSpec{
@@ -76,8 +76,8 @@ var challenges = map[string]challengeSpec{
 	},
 	"SMTP": challengeSpec{
 		ChallengeCode: "SMTP",
-		Description:   "Upload /usr/bin/curl to the FTP server on go.fast",
-		Title:         "Send a email to blog@benjojo.co.uk to the go.fast mail server",
+		Description:   "Send a email to blog@benjojo.co.uk to the go.fast mail server",
+		Title:         "Sending Email",
 		Stage:         5,
 	},
 }
