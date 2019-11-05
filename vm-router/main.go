@@ -16,6 +16,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/websocket"
 )
@@ -75,6 +76,9 @@ func main() {
 		HostPolicy: hostPolicy,
 		Cache:      autocert.DirCache(dataDir),
 		Email:      "ben@benjojo.co.uk",
+		Client: &acme.Client{
+			DirectoryURL: "https://api.buypass.com/acme/directory",
+		},
 	}
 	httpsSrv.Addr = fmt.Sprintf(":443")
 	httpsSrv.TLSConfig = &tls.Config{GetCertificate: m.GetCertificate}
